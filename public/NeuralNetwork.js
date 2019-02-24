@@ -101,38 +101,20 @@ class NeuralNetwork {
         return new_m
     }
     feedForward() {
-        // console.log("feedForward");
-        // console.log("\toutput");
-        // console.log(this.output);
-        // console.log("\tweight")
-        // console.log(this.weights1);
-        var forward = this.dot(this.input, this.weights1);
-        // console.log("\tforward");
-        // console.log(forward);
+        var forward = this.dot(this.input, this.weights1); //z = x.W
         for (var i = 0; i < this.y.length; i++){
-            this.layer1[i] = this.sigmoid(forward[i]);
+            this.layer1[i] = this.sigmoid(forward[i]); //a[1] = sigmoid(z)
         }
         this.output = this.layer1;
         return this.output;
-        // console.log("after feed");
-        // console.log("\toutput");
-        // console.log(this.output);
-        // console.log("\tweight");
-        // console.log(this.weights1);
     }
     backpropagate() {
-        // console.log("backpropagate "+ this.output);
-        // console.log("backpropagate "+this.weights1);
-        var error = this.multiplyVector(this.substractVector(this.y, this.output),-2);
-        // console.log("\terror");
-        // console.log(error);
-        var d_weight = this.dotVectorMatrix(error, this.input);
-        // console.log("length d_weight", d_weight);
-        this.weights1 = this.substractMatrix(this.weights1,d_weight);
+        var error = this.multiplyVector(this.substractVector(this.y, this.output),-2);//error = -2(y - (x.W))
+        var d_weight = this.dotVectorMatrix(error, this.input);// dE/dW = x . error
+        this.weights1 = this.substractMatrix(this.weights1,d_weight);// modify weight
 
     }
     transpose(matrix) {
-        // Calculate the width and height of the Array
         var i, j, t = [];
         var w = matrix.length || 0;
         if (matrix[0].length == null){
@@ -143,34 +125,19 @@ class NeuralNetwork {
             return t;
         }
         var h = matrix[0] instanceof Array ? matrix[0].length : 0;
-
-        // In case it is a zero matrix, no transpose routine needed.
         if (h === 0 || w === 0) {
             return [];
         }
-        /**
-         * @var {Number} i Counter
-         * @var {Number} j Counter
-         * @var {Array} t Transposed data is stored in this array.
-         */
-
-
-        // Loop through every item in the outer array (height)
         for (i = 0; i < h; i++) {
-            // Insert a new row (array)
             t[i] = [];
-            // Loop through every item per item in outer array (width)
             for (j = 0; j < w; j++) {
-                // Save transposed data.
                 t[i][j] = matrix[j][i];
             }
         }
-
         return t;
     }
     train() {
-        // console.log(this.output);
-        this.feedForward();
+        this.feedForward();//
         this.backpropagate();
     }
 }
