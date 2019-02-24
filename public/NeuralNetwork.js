@@ -6,6 +6,7 @@ class NeuralNetwork {
         this.output = this.generateZeros(y.length); //initialize predicted output
         this.alpha = 0.1; //learning rate
         this.layer1 = [];//hidden layer 1
+        this.passforward = [];
     }
     generateRandomMatrix(row, col) {
         var matrix = [];
@@ -28,7 +29,7 @@ class NeuralNetwork {
         return 1 / (1 + Math.pow(Math.E, -x))
     }
     sigmoidDerivative(x) {
-        return 1 * (1 - x);
+        return this.sigmoid(x) * (1 - this.sigmoid(x));
     }
     dot(m1, m2) {
         var row = m1.length;
@@ -41,6 +42,13 @@ class NeuralNetwork {
             }
         }
         return result;
+    }
+    dotVectorVector(v1,v2){
+        var res = 0;
+        for (var i = 0; i < v1.length; i++){
+            res += v1[i] * v2[i];
+        }
+        return res;
     }
     dotVectorMatrix(v,m){
         var res = [];
@@ -91,7 +99,7 @@ class NeuralNetwork {
         return new_v;
     }
     multiplyMatrix(m, num){
-        new_m = [];
+        var new_m = [];
         for (var i = 0; i < m.length; i++){
             new_m[i] = [];
             for (var j = 0; j < m.length; j++){
@@ -101,16 +109,21 @@ class NeuralNetwork {
         return new_m
     }
     feedForward() {
-        var forward = this.dot(this.input, this.weights1); //z = x.W
+        this.passforward = this.dot(this.input, this.weights1); //z = x.W
         for (var i = 0; i < this.y.length; i++){
-            this.layer1[i] = this.sigmoid(forward[i]); //a[1] = sigmoid(z)
+            this.layer1[i] = this.sigmoid(this.passforward[i]); //a[1] = sigmoid(z)
         }
         this.output = this.layer1;
         return this.output;
     }
     backpropagate() {
         var error = this.multiplyVector(this.substractVector(this.y, this.output),-2);//error = -2(y - (x.W))
+        var d_yw = [];
+        for (var i = 0; i < this.passforward.length; i++){
+            d_yw[i] = this.sigmoidDerivative(this.passforward[i]); //d_yw = d_sigmoid(z)
+        }
         var d_weight = this.dotVectorMatrix(error, this.input);// dE/dW = x . error
+        d_weight = this.multiplyMatrix(this.dotVectorMatrix(d_yw, d_weight), this.alpha);//alpha * d_yw
         this.weights1 = this.substractMatrix(this.weights1,d_weight);// modify weight
 
     }
@@ -135,6 +148,11 @@ class NeuralNetwork {
             }
         }
         return t;
+    }
+    predict(x){
+        this.input = x;
+        this.feedForward();
+        return this.output;
     }
     train() {
         this.feedForward();//
