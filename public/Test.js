@@ -7,7 +7,7 @@ function testNeuralNet(){
     // var X = [[1,0],[2,1],[3,8],[-1,0],[-2,1],[-3,7],[4,15],[-4,10],[1,2],[2,5],[3,10],[-2,6],[-3,12],[0,1],[5,27],[9,84]];
     // var y = [0,0,0,0,0,0,0,0,1,1,1,1,1,1,1,1];
     var nn = new NeuralNetwork(X,y);
-    for (var i = 0; i < 100000;i++){
+    for (var i = 0; i < 10000;i++){
         nn.train();
     }
     // var X_test = [[2,0],[2,9],[-3,-2],[7,48],[5,24],[1,1],[2,4]];
@@ -64,4 +64,38 @@ function testRecurrentNet(){
     console.log(caches[1][1][3]);
     console.log(caches.length);
 }
-testRecurrentNet();
+
+function testLSTMCellForward(){
+    var xt = cal.generateRandom([3,10]);
+    var a_prev = cal.generateRandom([5,10]);
+    var c_prev = cal.generateRandom([5,10]);
+    var Wf = cal.generateRandom([5, 5+3]);
+    var bf = cal.generateRandom([5,1]);
+    var Wi = cal.generateRandom([5, 5+3]);
+    var bi = cal.generateRandom([5,1]);
+    var Wc = cal.generateRandom([5,5+3]);
+    var bc = cal.generateRandom([5,1]);
+    var Wo = cal.generateRandom([5,5+3]);
+    var bo = cal.generateRandom([5,1]);
+    var Wy = cal.generateRandom([2,5]);
+    var by = cal.generateRandom([2,1]);
+    var parameters = {
+        "Wf" : Wf,
+        "bf" : bf,
+        "Wi" : Wi,
+        "bi" : bi,
+        "Wc" : Wc,
+        "bc" : bc,
+        "Wo" : Wo,
+        "bo" : bo,
+        "Wy" : Wy,
+        "by" : by
+    }
+    var res = rnn.lstm_cell_forward(xt, c_prev, a_prev, parameters);
+    var a_next = res["a_next"];
+    var c_next = res["c_next"];
+    var cache  = res["cache"];
+    var parameters = res["parameters"];
+    return res;
+}
+// testRecurrentNet();

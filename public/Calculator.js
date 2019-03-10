@@ -103,6 +103,22 @@ class Calculator{
         }
         return res;
     }
+
+    concatenateCol(m1, m2){
+        for (var i = 0; i < m1.length;i++){
+            for (var j = 0; j < m2[0].length; j++){
+                m1[i].push(m2[i][j]);
+            }
+        }
+        return m1;
+    }
+
+    concatenateRow(m1,m2){
+        for (var i = 0 ; i < m2.length; i++){
+            m1.push(m2[i]);
+        }
+        return m1;
+    }
     add(m1,m2,operator){
         var res= [];
         if (m1.length != m2.length){

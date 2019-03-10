@@ -18,13 +18,10 @@ class NeuralNetwork {
         this.z_3 = this.calculator.generateRandomMatrix(1,1);
         this.a_3 = this.calculator.generateRandomMatrix(1,1);
         this.y = y; //actual output
-        this.output = this.calculator.generateZeros(y.length); //initialize predicted output
+        // this.output = this.calculator.generateZeros(y.length); //initialize predicted output
         this.alpha = 0.1; //learning rate
     }
-
-
-
-
+    
     feedForward(index) {
         this.z_1 = this.calculator.add(this.calculator.dot(this.weights1, [this.input[index]]), this.biases1, "+");
         this.a_1 = this.activation.sigmoid(this.z_1);

@@ -83,7 +83,6 @@ class RecurrentNeuralNet{
             var yt_pred = res["y_pred"];
             var cache = res["cache"];
             let yt_dim = this.cal.shape(this.cal.transpose(yt_pred));
-            // console.log(yt_dim, this.cal.shape(y_pred));
             y_pred = this.cal._assignVal_(y_pred, this.cal.transpose(yt_pred), 0, yt_dim, t);
             caches.push(cache);
         }
@@ -92,6 +91,92 @@ class RecurrentNeuralNet{
             "a": a,
             "y_pred": y_pred,
             "caches": caches};
+    }
+    lstm_cell_forward(xt, c_prev, a_prev, parameters){
+        /*
+        xt - input data at timestep t, shape of (n_x, m)
+        c_prev - memory state at timestep t-1, shape of (n_a, m)
+        a_prev - Hidden state of timetep t-1, shape of (n_a, m)
+        parameters:
+            Wf - weight for the forget gate, shape of (n_a, n_a + n_x)
+            bf - bias for forget gate, shape of (n_a, 1)
+            Wi - weight for save gate, shape of (n_a, n_a + n_x)
+            bi - bias for save gate, shape of (n_a, 1)
+            Wc - weight for matrix of the first tanh, shape of (n_a, n_a + n_x)
+            bc - bias for the first tanh, shape of (n_a, 1)
+            Wo - weight for focus gate, shape of (n_a, n_a + n_x)
+            bo - bias for focus gate, shape of (n_a, 1)
+            Wy - weight related for the output layer, shape of (n_y, n_a)
+            by - bias related for the output layer, shape of (n_y, 1)
+        Returns:
+            a_next : the next hidden state, shape of (n_a, m)
+            c_next : the next memory state, shape of (n_a, m)
+            yt_pred: prediction for the timestep, shape of (n_y, n_a)
+            cache: tuples of values needed for the backpass,
+                contains (a_next, c_next, a_prev, c_prev, xt, parameters)
+
+        Note: ft/it/ot stand for the forget/update/output gates, cct stands for
+            the candidate value (c tilda), c stands for the memory value
+        */
+        var Wf = parameters["Wf"];
+        var bf = parameters["bf"];
+        var Wi = parameters["Wi"];
+        var bi = parameters["bi"];
+        var Wc = parameters["Wc"];
+        var bc = parameters["bc"];
+        var Wo = parameters["Wo"];
+        var bo = parameters["bo"];
+        var Wy = parameters["Wy"];
+        var by = parameters["by"];
+
+        var n_x = this.cal.shape(xt)[0];
+        var m = this.cal.shape(xt)[1];
+        var n_y = this.cal.shape(Wy)[0];
+        var n_a = this.cal.shape(Wy)[1];
+
+        var concat = this.cal.concatenateRow(a_prev, xt)
+        var ft = this.activation.sigmoid(this.cal.addMatrixVector(
+            this.cal.dot(
+                Wf, this.cal.transpose(concat)
+            ),bf
+        ));
+        var it = this.activation.sigmoid(this.cal.addMatrixVector(
+            this.cal.dot(
+                Wi, this.cal.transpose(concat)
+            ), bi
+        ));
+        var cct = this.activation.tanh(this.cal.addMatrixVector(
+            this.cal.dot(
+                Wc, this.cal.transpose(concat)
+            ), bc
+        ));
+        var c_next = this.cal.add(
+            this.cal.elemProduct(ft, c_prev),
+            this.cal.elemProduct(it, cct), "+"
+        );
+        var ot = this.activation.sigmoid(this.cal.addMatrixVector(
+            this.cal.dot(
+                Wo, this.cal.transpose(concat)
+            ), bo
+        ));
+        var a_next = this.cal.elemProduct(
+            ot, this.activation.tanh(c_next)
+        );
+        var yt_pred = this.activation.softmax(
+            this.cal.addMatrixVector(
+                this.cal.dot(
+                    Wy, this.cal.transpose(a_next)
+                ), by
+            )
+        );
+
+        var cache = (a_next, c_next, a_prev, c_prev, ft, it, cct, ot, xt, parameters);
+        return {
+            "a_next" : a_next,
+            "c_next" : c_next,
+            "yt_pred": yt_pred,
+            "cache"  : cache
+        };
     }
     rnn_cell_backward(){
 
