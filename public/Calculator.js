@@ -93,6 +93,21 @@ class Calculator{
         new_arr = this._assignVal(arr, new_arr, 0, new_dim,t);
         return new_arr;
     }
+    sliceMatrix(arr,from,to){
+        var res = [];
+        for (var i = 0; i < arr.length; i++){
+            res.push(arr[i].slice(from, to));
+        }
+        return res;
+    }
+
+    sumHorizontal(m){
+        var res = [];
+        for (var i = 0; i < m.length; i++){
+            res.push(this.sumOf([m[i]]));
+        }
+        return res;
+    }
 
     sumOf(m){
         var res = 0;
@@ -114,10 +129,11 @@ class Calculator{
     }
 
     concatenateRow(m1,m2){
+        var res = m1.slice()
         for (var i = 0 ; i < m2.length; i++){
-            m1.push(m2[i]);
+            res.push(m2[i]);
         }
-        return m1;
+        return res;
     }
     add(m1,m2,operator){
         var res= [];
@@ -144,6 +160,17 @@ class Calculator{
         }
         return res;
     }
+    scalarOpRe(num, m, op){
+        var res = [];
+        for (var i = 0; i < m.length; i++){
+            res[i] = [];
+            for (var j = 0; j < m[0].length;j++){
+                if (op == "/") res[i][j] =  num / m[i][j];
+                else if (op == "-") res[i][j] =  num - m[i][j];
+            }
+        }
+        return res;
+    }
     scalarOp(m, num, op){
         var res = [];
         for (var i = 0; i < m.length; i++){
@@ -152,6 +179,7 @@ class Calculator{
                 if (op == "*") res[i][j] = m[i][j] * num;
                 else if (op == "+") res[i][j] = m[i][j] + num;
                 else if (op == "-") res[i][j] = m[i][j] - num;
+                else if (op == "**") res[i][j] = Math.pow(m[i][j],num);
             }
         }
         return res;
@@ -182,6 +210,8 @@ class Calculator{
         var res = [];
         if (m1.length != m2.length || m1[0].length != m2[0].length){
             console.log(m1.length, m2.length, m1[0].length, m2[0].length);
+            // console.log(m1);
+            // console.log(m2);
         }
         for (var i = 0; i < m1.length; i++){
             res[i] = [];

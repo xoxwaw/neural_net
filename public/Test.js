@@ -95,7 +95,44 @@ function testLSTMCellForward(){
     var a_next = res["a_next"];
     var c_next = res["c_next"];
     var cache  = res["cache"];
-    var parameters = res["parameters"];
+    // var parameters = res["parameters"];
     return res;
+}
+
+function testLSTMForward(){
+    var x = cal.generateRandom([3,10,7]);
+    var a0 = cal.generateRandom([5,10]);
+    var Wf = cal.generateRandom([5, 5+3]);
+    var bf = cal.generateRandom([5,1]);
+    var Wi = cal.generateRandom([5, 5+3]);
+    var bi = cal.generateRandom([5,1]);
+    var Wo = cal.generateRandom([5, 5+3]);
+    var bo = cal.generateRandom([5,1]);
+    var Wc = cal.generateRandom([5, 5+3]);
+    var bc = cal.generateRandom([5,1]);
+    var Wy = cal.generateRandom([2,5]);
+    var by = cal.generateRandom([2,1]);
+
+    var parameters = {
+        "Wf": Wf,
+        "Wi": Wi,
+        "Wo": Wo,
+        "Wc": Wc,
+        "Wy": Wy,
+        "bf": bf,
+        "bi": bi,
+        "bo": bo,
+        "bc": bc,
+        "by": by};
+    var res = rnn.lstm_forward(x, a0, parameters);
+    console.log(res);
+}
+
+function testLSTMCellBackward(){
+    var res = testLSTMCellForward();
+    var da_next = cal.generateRandom([5,10]);
+    var dc_next = cal.generateRandom([5,10]);
+    var gradient = rnn.lstm_cell_backward(da_next, dc_next, res["cache"]);
+    return gradient
 }
 // testRecurrentNet();
