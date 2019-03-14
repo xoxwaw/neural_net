@@ -236,9 +236,9 @@ class RecurrentNeuralNet{
 
         return {
             "a": a,
+            "c": c,
             "y_pred": y_pred,
             "caches": caches};
-
     }
     rnn_cell_backward(da_next, cache){
         /*Single time step
@@ -383,7 +383,6 @@ class RecurrentNeuralNet{
        var dbi = this.cal.sumHorizontal(dit);
        var dbo = this.cal.sumHorizontal(dot);
        var dbc = this.cal.sumHorizontal(dcct);
-
        var Wf = parameters["Wf"],
             Wo= parameters["Wo"],
             Wi= parameters["Wi"],
@@ -421,7 +420,6 @@ class RecurrentNeuralNet{
                ), dc_next, "+"
            ), ft
        );
-       console.log(this.cal.shape(this.cal.sliceMatrix(Wf,n_a,Wf[0].length)), this.cal.shape(dft));
        var dxt = this.cal.add(
            this.cal.dot(
                this.cal.transpose(this.cal.sliceMatrix(Wf, n_a, Wf[0].length)),
@@ -447,13 +445,13 @@ class RecurrentNeuralNet{
            "da_prev" : da_prev,
            "dc_prev" : dc_prev,
            "dWf" : dWf,
-           "dbf" : dbf,
+           "dbf" : this.cal.transpose(dbf),
            "dWi" : dWi,
-           "dbi" : dbi,
+           "dbi" : this.cal.transpose(dbi),
            "dWc" : dWc,
-           "dbc" : dbc,
+           "dbc" : this.cal.transpose(dbc),
            "dWo" : dWo,
-           "dbo" : dbo
+           "dbo" : this.cal.transpose(dbo)
        }
     }
     lstm_backward(da, cache){
@@ -473,15 +471,70 @@ class RecurrentNeuralNet{
             dbc - gradient wrt the bias of the memory state (n_a, 1)
             dbo - gradient wrt the bias of the save state, (n_a, 1)
         */
-        var a1 = caches[0],
-            c1 = caches[1],
-            a0 = caches[2],
-            c0 = caches[3],
-            f1 = caches[4],
-            i1 = caches[5],
-            cc1= caches[6],
-            o1 = caches[7],
-            x1 = caches[8],
-            parameters = caches[9];
+        var caches = cache[0],
+            x = cache[1];
+        var a1 = caches[0][0],
+            c1 = caches[0][1],
+            a0 = caches[0][2],
+            c0 = caches[0][3],
+            f1 = caches[0][4],
+            i1 = caches[0][5],
+            cc1= caches[0][6],
+            o1 = caches[0][7],
+            x1 = caches[0][8],
+            parameters = caches[0][9];
+        var da_shape = this.cal.shape(da);
+        var n_a = da_shape[0],
+            m = da_shape[1],
+            T_x = da_shape[2];
+        var n_x = this.cal.shape(x1)[0];
+
+        var dx = this.cal.generateZeros([n_x,m,T_x]),
+            da0 = this.cal.generateZeros([n_a,m]),
+            da_prevt = this.cal.generateZeros([n_a,m]),
+            dc_prevt = this.cal.generateZeros([n_a,m]),
+            dWf = this.cal.generateZeros([n_a, n_a + n_x]),
+            dWi = this.cal.generateZeros([n_a, n_a + n_x]),
+            dWc = this.cal.generateZeros([n_a, n_a + n_x]),
+            dWo = this.cal.generateZeros([n_a, n_a + n_x]),
+            dbf = this.cal.generateZeros([n_a,1]),
+            dbi = this.cal.generateZeros([n_a,1]),
+            dbc = this.cal.generateZeros([n_a,1]),
+            dbo = this.cal.generateZeros([n_a,1]);
+
+        for (var t = T_x - 1; t >= 0; t--){
+            var gradients = this.lstm_cell_backward(
+                this.cal.add(
+                    this.cal.getMMinusOneDim(da, t),
+                    da_prevt, "+"
+                ), dc_prevt, caches[t]
+            );
+            var dxt_dim = this.cal.shape(gradients["dxt"]);
+            console.log(dbo);
+            console.log(gradients["dbo"]);
+            dx = this.cal._assignVal_(dx, gradients["dxt"], 0, dxt_dim, t);
+            dWf = this.cal.add(dWf, gradients["dWf"], "+");
+            dWi = this.cal.add(dWi, gradients["dWi"], "+");
+            dWc = this.cal.add(dWc, gradients["dWc"], "+");
+            dWo = this.cal.add(dWo, gradients["dWo"], "+");
+            dbf = this.cal.add(dbf, gradients["dbf"], "+");
+            dbi = this.cal.add(dbi, gradients["dbi"], "+");
+            dbc = this.cal.add(dbc, gradients["dbc"], "+");
+            dbo = this.cal.add(dbo, gradients["dbo"], "+");
+        }
+        da0 = gradients["da_prev"];
+        return {
+            "dx": dx,
+            "da0": da0,
+            "dWf": dWf,
+            "dbf": dbf,
+            "dWi": dWi,
+            "dbi": dbi,
+            "dWc": dWc,
+            "dbc": dbc,
+            "dWo": dWo,
+            "dbo": dbo
+        }
+
     }
 }

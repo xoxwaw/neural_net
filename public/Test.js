@@ -125,7 +125,7 @@ function testLSTMForward(){
         "bc": bc,
         "by": by};
     var res = rnn.lstm_forward(x, a0, parameters);
-    console.log(res);
+    return res;
 }
 
 function testLSTMCellBackward(){
@@ -134,5 +134,13 @@ function testLSTMCellBackward(){
     var dc_next = cal.generateRandom([5,10]);
     var gradient = rnn.lstm_cell_backward(da_next, dc_next, res["cache"]);
     return gradient
+}
+
+function testLSTMBackward(){
+    var res = testLSTMForward();
+    var caches = res["caches"];
+    var da = cal.generateRandom([5,10,4]);
+    var gradient = rnn.lstm_backward(da, caches);
+    return gradient;
 }
 // testRecurrentNet();
