@@ -64,7 +64,6 @@ function testRecurrentNet(){
     console.log(caches[1][1][3]);
     console.log(caches.length);
 }
-
 function testLSTMCellForward(){
     var xt = cal.generateRandom([3,10]);
     var a_prev = cal.generateRandom([5,10]);
@@ -98,7 +97,6 @@ function testLSTMCellForward(){
     // var parameters = res["parameters"];
     return res;
 }
-
 function testLSTMForward(){
     var x = cal.generateRandom([3,10,7]);
     var a0 = cal.generateRandom([5,10]);
@@ -127,7 +125,6 @@ function testLSTMForward(){
     var res = rnn.lstm_forward(x, a0, parameters);
     return res;
 }
-
 function testLSTMCellBackward(){
     var res = testLSTMCellForward();
     var da_next = cal.generateRandom([5,10]);
@@ -135,7 +132,6 @@ function testLSTMCellBackward(){
     var gradient = rnn.lstm_cell_backward(da_next, dc_next, res["cache"]);
     return gradient
 }
-
 function testLSTMBackward(){
     var res = testLSTMForward();
     var caches = res["caches"];
@@ -143,4 +139,16 @@ function testLSTMBackward(){
     var gradient = rnn.lstm_backward(da, caches);
     return gradient;
 }
+
+var X = cal.generateRandom([3,10,7]);
+var y = cal.generateRandom([2,7]);
+const lstm = new LSTM(X,y,5);
+function testLSTM(){
+    lstm.train(1000);
+    var res = lstm.predict(cal.generateRandom([3,10,7]));
+    console.log(res);
+}
+
+
+
 // testRecurrentNet();
